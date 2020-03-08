@@ -25,7 +25,16 @@ def Main():
     test_data, test_labels = LoadData(test_data_file)
     
 
-    
+
+    # one hot
+    shape = (test_labels.size, test_labels.max() + 1)
+    one_hot = np.zeros(shape)
+    rows = np.arange(test_labels.size)
+    # first index selects row (one by one, from 0 to number of samples), second index selects column matching the label value
+    one_hot[rows, test_labels] = 1
+
+
+
 
     PrintLog("All done!")
 
