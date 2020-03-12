@@ -19,6 +19,13 @@ subset_length = 2000
 batch_size = 128
 epochs = 3
 
+# Weights file to load. This will be ignored if "retrain" is "true" or left empty.
+weights_file = ""
+
+# If "retrain" is "true", training will be done regardless of whether the the weights file is provided or not.
+# Training will always generate a weights file and prompt to save it.
+retrain = "true"
+
 ################## CONFIG SECTION END ##################################################################
 
 def main():
@@ -43,17 +50,29 @@ def main():
     # reshape to fit Conv2D layer
     train_data = train_data.reshape(-1, 48, 48, 1)
 
-    
-    model = models.baseline_model()
+    # get model by training or loading wights
+    if (retrain or weights_file == ""):
+        # train the model
+        model = models.baseline_model()
 
-    model.fit(train_data, train_labels,
-              batch_size=batch_size,
-              epochs=epochs,
-              verbose=1,
-              validation_split=0.1111)
+        model.fit(train_data, train_labels,
+            batch_size=batch_size,
+            epochs=epochs,
+            verbose=1,
+            validation_split=0.1111)
+
+        # TODO: save prompt
+
+    else:
+        # load weights
+        
+    # predict outputs on test data
+    
+    
 
 
     print_log("All done!")
+
 
 def load_data(file):
     data_file = file
