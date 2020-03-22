@@ -9,21 +9,21 @@ from os import path
 
 # Filename for train and test data (without extension). If .dat file is present it will be used, 
 # if not .csv file will be used and .dat file will be generated to be used in the next run. 
-# This is to improve the load speeds as .dat file loads faster with numpy array.
+# This is to improve the load speeds as .dat file loads much faster with numpy array.
 train_data_file = "data/train"
 test_data_file = "data/test"
 
 # Number of data samples to use for training. Set to 0 to use all data.
-subset_length = 2000
+subset_length = 1000
 
 batch_size = 128
-epochs = 3
+epochs = 1
 
 # Weights file to load. This will be ignored if "retrain" is "true" or left empty.
 weights_file = ""
 
 # If "retrain" is "true", training will be done regardless of whether the the weights file is provided or not.
-# Training will always generate a weights file and prompt to save it.
+# Training will always generate a weights file and save it to models. ... ? TODO
 retrain = "true"
 
 ################## CONFIG SECTION END ##################################################################
@@ -61,11 +61,17 @@ def main():
             verbose=1,
             validation_split=0.1111)
 
-        # TODO: save prompt
-
+        # save the model
+        model_json = model.to_json()
+        with open("saved_models/model.json", "w") as json_file:
+            json_file.write(model_json)
+        # serialize weights to HDF5
+        model.save_weights("saved_models/model.h5")
+        print_log("Model saved to disk.")
     else:
         # load weights
-        
+        pass
+
     # predict outputs on test data
     
     
