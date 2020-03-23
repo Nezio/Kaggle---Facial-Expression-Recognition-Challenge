@@ -66,8 +66,6 @@ def baseline_model_external():
     # output layer
     model.add(Dense(number_of_classes, activation='sigmoid'))
 
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
-
     return model
 
 def baseline_model():    
@@ -99,7 +97,5 @@ def baseline_model():
 
     # output layer
     model.add(Dense(number_of_classes, activation='sigmoid'))
-
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
     return model

@@ -1,5 +1,7 @@
 import tensorflow as tf
 import numpy as np
+from keras.models import model_from_json
+from keras.metrics import categorical_accuracy
 import datetime
 import models
 from tqdm import tqdm
@@ -14,17 +16,18 @@ train_data_file = "data/train"
 test_data_file = "data/test"
 
 # Number of data samples to use for training. Set to 0 to use all data.
-subset_length = 1000
+subset_length = 500
 
 batch_size = 128
 epochs = 1
 
-# Weights file to load. This will be ignored if "retrain" is "true" or left empty.
-weights_file = ""
+# Model files to load (without extension). Model file (.json) and weights file (.h5) will be loaded.
+# This will be ignored if "retrain" is "true" or left empty.
+model_files = "saved_models/model_test"
 
 # If "retrain" is "true", training will be done regardless of whether the the weights file is provided or not.
-# Training will always generate a weights file and save it to models. ... ? TODO
-retrain = "true"
+# Training will always generate a weights file and save it to saved_models/model.json and saved_models/model.h5
+retrain = False
 
 ################## CONFIG SECTION END ##################################################################
 
@@ -51,9 +54,11 @@ def main():
     train_data = train_data.reshape(-1, 48, 48, 1)
 
     # get model by training or loading wights
-    if (retrain or weights_file == ""):
+    if (retrain or model_files == ""):
         # train the model
         model = models.baseline_model()
+
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
         model.fit(train_data, train_labels,
             batch_size=batch_size,
@@ -62,15 +67,12 @@ def main():
             validation_split=0.1111)
 
         # save the model
-        model_json = model.to_json()
-        with open("saved_models/model.json", "w") as json_file:
-            json_file.write(model_json)
-        # serialize weights to HDF5
-        model.save_weights("saved_models/model.h5")
-        print_log("Model saved to disk.")
+        save_model(model)
     else:
-        # load weights
-        pass
+        model = load_model(model_files)
+
+        # compile if needed
+        #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
     # predict outputs on test data
     
@@ -78,6 +80,7 @@ def main():
 
 
     print_log("All done!")
+
 
 
 def load_data(file):
@@ -186,6 +189,28 @@ def one_hot_encode(input_array):
     one_hot_array[rows, input_array] = 1
 
     return one_hot_array
+
+def save_model(model):
+    # save json
+    model_json = model.to_json()
+    with open("saved_models/model.json", "w") as json_file:
+        json_file.write(model_json)
+
+    # save the weights
+    model.save_weights("saved_models/model.h5")
+    print_log("Model saved to disk.")
+
+def load_model(model_path):
+    # read model from json
+    model_json_file = open(model_path + ".json", 'r')
+    model_json = model_json_file.read()
+    model_json_file.close()
+    model = model_from_json(model_json)
+
+    # load weights
+    model.load_weights(model_path + ".h5")
+
+    return model
 
 
 
