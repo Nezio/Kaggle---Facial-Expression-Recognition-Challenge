@@ -27,7 +27,7 @@ model_files = "saved_models/model_test"
 
 # If "retrain" is "true", training will be done regardless of whether the the weights file is provided or not.
 # Training will always generate a weights file and save it to saved_models/model.json and saved_models/model.h5
-retrain = False
+retrain = True
 
 ################## CONFIG SECTION END ##################################################################
 
@@ -52,6 +52,7 @@ def main():
 
     # reshape to fit Conv2D layer
     train_data = train_data.reshape(-1, 48, 48, 1)
+    test_data = test_data.reshape(-1, 48, 48, 1)
 
     # get model by training or loading wights
     if (retrain or model_files == ""):
@@ -75,8 +76,18 @@ def main():
         #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
     # predict outputs on test data
+    print_log("Predicting answers on the test data...")
+    prediction_np = model.predict(test_data, verbose=1)
+
+    # format prediction and test_labels to an array of results
+    predictions = [np.argmax(item) for item in prediction_np]
+    correct_answers = [np.argmax(item) for item in test_labels]
     
-    
+    # calculate accuracy (prediction_correct is an array telling if prediction is correct, for each prediction)
+    prediction_correct = [(prediction == correct_answer) for prediction, correct_answer in zip(predictions, correct_answers)]
+    accuracy = np.mean(prediction_correct)
+
+    print_log("Accuracy on the test data is: {accuracy}".format(accuracy=accuracy))
 
 
     print_log("All done!")
@@ -209,6 +220,8 @@ def load_model(model_path):
 
     # load weights
     model.load_weights(model_path + ".h5")
+
+    print_log('Model loaded from "{model_path}"'.format(model_path=model_path))
 
     return model
 
