@@ -14,35 +14,35 @@ number_of_classes = 7
 
 ################## CONFIG SECTION END ##################################################################
 
-def baseline_model_external():
+def baseline_external():
     # CNN model with four Convolution layers & two fully connected layers
     
     # Initialising the CNN
     model = Sequential()
 
     # 1st Convolution
-    model.add(Conv2D(64,(3,3), border_mode='same', input_shape=(48, 48,1)))
+    model.add(Conv2D(64,(3,3), padding='same', input_shape=(48, 48,1)))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # 2nd Convolution layer
-    model.add(Conv2D(128,(5,5), border_mode='same'))
+    model.add(Conv2D(128,(5,5), padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # 3rd Convolution layer
-    model.add(Conv2D(512,(3,3), border_mode='same'))
+    model.add(Conv2D(512,(3,3), padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # 4th Convolution layer
-    model.add(Conv2D(512,(3,3), border_mode='same'))
+    model.add(Conv2D(512,(3,3), padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -68,19 +68,19 @@ def baseline_model_external():
 
     return model
 
-def baseline_model():    
+def baseline_external_short():    
     # Initialising the CNN
     model = Sequential()
 
     # 1st Convolution
-    model.add(Conv2D(64,(3,3), border_mode='same', input_shape=(48, 48,1)))
+    model.add(Conv2D(64,(3,3), padding='same', input_shape=(48, 48,1)))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # 2nd Convolution layer
-    model.add(Conv2D(128,(5,5), border_mode='same'))
+    model.add(Conv2D(128,(5,5), padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -97,5 +97,37 @@ def baseline_model():
 
     # output layer
     model.add(Dense(number_of_classes, activation='sigmoid'))
+
+    return model
+
+def baseline():    
+    # Initialising the CNN
+    model = Sequential()
+
+    # 1st Convolution
+    model.add(Conv2D(64,(3,3), padding='same', input_shape=(48, 48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # 2nd Convolution layer
+    model.add(Conv2D(128,(5,5), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer 1
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Dropout(0.25))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
 
     return model

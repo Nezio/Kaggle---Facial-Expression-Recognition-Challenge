@@ -57,7 +57,7 @@ def main():
     # get model by training or loading wights
     if (retrain or model_files == ""):
         # train the model
-        model = models.baseline_model()
+        model = models.baseline()
 
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
