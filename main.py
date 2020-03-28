@@ -1,11 +1,16 @@
+import datetime
+import models
+from os import path
+from random import randrange
+
 import tensorflow as tf
 import numpy as np
 from keras.models import model_from_json
 from keras.metrics import categorical_accuracy
-import datetime
-import models
+from keras.utils import plot_model
+import matplotlib.pyplot as plt
+
 from tqdm import tqdm
-from os import path
 
 ################## CONFIG SECTION START ################################################################
 
@@ -15,19 +20,22 @@ from os import path
 train_data_file = "data/train"
 test_data_file = "data/test"
 
-# Number of data samples to use for training. Set to 0 to use all data.
-subset_length = 500
+# Number of data samples to use for training (and validation). Set to 0 to use all the data.
+train_subset_length = 500
 
-batch_size = 128
-epochs = 1
+# Number of data samples to use for testing. Set to 0 to use all the data.
+test_subset_length = 100
+
+batch_size = 256
+epochs = 4
 
 # Model files to load (without extension). Model file (.json) and weights file (.h5) will be loaded.
-# This will be ignored if "retrain" is "true" or left empty.
+# This will be ignored if left empty or "retrain" is set to "True".
 model_files = "saved_models/model_test"
 
-# If "retrain" is "true", training will be done regardless of whether the the weights file is provided or not.
+# If "retrain" is "True", training will be done regardless of whether the the weights file is provided or not.
 # Training will always generate a weights file and save it to saved_models/model.json and saved_models/model.h5
-retrain = True
+retrain = False
 
 ################## CONFIG SECTION END ##################################################################
 
@@ -45,10 +53,10 @@ def main():
     train_labels = one_hot_encode(train_labels)
     test_labels = one_hot_encode(test_labels)
 
-    # subset data
-    if (subset_length > 0):
-        train_data = train_data[0:subset_length]
-        train_labels = train_labels[0:subset_length]
+    # subset train data
+    if (train_subset_length > 0):
+        train_data = train_data[0:train_subset_length]
+        train_labels = train_labels[0:train_subset_length]
 
     # reshape to fit Conv2D layer
     train_data = train_data.reshape(-1, 48, 48, 1)
@@ -61,7 +69,7 @@ def main():
 
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
-        model.fit(train_data, train_labels,
+        history = model.fit(train_data, train_labels,
             batch_size=batch_size,
             epochs=epochs,
             verbose=1,
@@ -69,11 +77,37 @@ def main():
 
         # save the model
         save_model(model)
+
+        # Plot training & validation loss values
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+        plt.show()
+
+        # Plot training & validation accuracy values
+        plt.plot(history.history['categorical_accuracy'])
+        plt.plot(history.history['val_categorical_accuracy'])
+        plt.title('Model accuracy')
+        plt.ylabel('Accuracy')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+        plt.show()
     else:
+        # load the model
         model = load_model(model_files)
 
         # compile if needed
         #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
+
+    # create nmodel vizualization image
+    #plot_model(model, to_file='model.png')
+
+    # subset test data
+    if (test_subset_length > 0):
+        test_data = test_data[0:test_subset_length]
 
     # predict outputs on test data
     print_log("Predicting answers on the test data...")
@@ -87,10 +121,18 @@ def main():
     prediction_correct = [(prediction == correct_answer) for prediction, correct_answer in zip(predictions, correct_answers)]
     accuracy = np.mean(prediction_correct)
 
+    # save a sample of incorrect classifications #TODO: do save bool check
+    save_wrong_classification_sample(test_data, prediction_correct, 10)
+
     print_log("Accuracy on the test data is: {accuracy}".format(accuracy=accuracy))
 
 
     print_log("All done!")
+
+
+
+##############################################################################################################################################
+##############################################################################################################################################
 
 
 
@@ -225,6 +267,37 @@ def load_model(model_path):
 
     return model
 
+def save_wrong_classification_sample(images, prediction_correct, sample_size):
+    '''
+        Saves a sample of wrongly classified images as labeled image files.
+
+        Parameters:
+        images: Numpy array of images. The data that prediction was ran on.
+        prediction_correct: An array of True/False values indicating the success of the prediction. Must be the same length as test_data.
+        sample_size: Number of images (samples) to save. Default: 10.
+    '''
+    data_length = images.shape[0]
+    already_selected = []
+
+    for sample_index in range(sample_size):
+        random_index = randrange(data_length)
+
+        # skip already saved samples
+        if (random_index in already_selected):
+            continue
+        
+        # skip correct predictions
+        if (prediction_correct[random_index] == True):
+            continue
+
+        already_selected.append(random_index)
+
+        # save the image
+        image_data_np = images[random_index]
+        # TODO
+
+
+        x = 123
 
 
 
