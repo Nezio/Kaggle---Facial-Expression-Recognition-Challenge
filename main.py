@@ -1,6 +1,6 @@
 import datetime
-import models
-from os import path
+import shutil
+import os
 from random import randrange
 
 import tensorflow as tf
@@ -8,8 +8,9 @@ import numpy as np
 from keras.models import model_from_json
 from keras.metrics import categorical_accuracy
 from keras.utils import plot_model
-import matplotlib.pyplot as plt
+from matplotlib import pyplot
 
+import models
 from tqdm import tqdm
 
 ################## CONFIG SECTION START ################################################################
@@ -24,7 +25,7 @@ test_data_file = "data/test"
 train_subset_length = 500
 
 # Number of data samples to use for testing. Set to 0 to use all the data.
-test_subset_length = 100
+test_subset_length = 500
 
 batch_size = 256
 epochs = 4
@@ -37,7 +38,18 @@ model_files = "saved_models/model_test"
 # Training will always generate a weights file and save it to saved_models/model.json and saved_models/model.h5
 retrain = False
 
+# Whether to save wrongly classified images to folder for reviewing.
+save_wrong_classifications = True
+
+# Path where to save wrongly classified images if save_wrong_classifications is set to "True"
+wrong_classifications_path = "data/images/wrong classifications"
+
+# Number of images to save from wrong classifications.
+wrong_classification_sample_size = 100
+
 ################## CONFIG SECTION END ##################################################################
+
+emotions_mapping = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"]
 
 def main():
 
@@ -62,6 +74,9 @@ def main():
     train_data = train_data.reshape(-1, 48, 48, 1)
     test_data = test_data.reshape(-1, 48, 48, 1)
 
+    # save test data images
+    #save_images(test_data)
+
     # get model by training or loading wights
     if (retrain or model_files == ""):
         # train the model
@@ -79,22 +94,22 @@ def main():
         save_model(model)
 
         # Plot training & validation loss values
-        plt.plot(history.history['loss'])
-        plt.plot(history.history['val_loss'])
-        plt.title('Model loss')
-        plt.ylabel('Loss')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Validation'], loc='upper left')
-        plt.show()
+        pyplot.plot(history.history['loss'])
+        pyplot.plot(history.history['val_loss'])
+        pyplot.title('Model loss')
+        pyplot.ylabel('Loss')
+        pyplot.xlabel('Epoch')
+        pyplot.legend(['Train', 'Validation'], loc='upper left')
+        pyplot.show()
 
         # Plot training & validation accuracy values
-        plt.plot(history.history['categorical_accuracy'])
-        plt.plot(history.history['val_categorical_accuracy'])
-        plt.title('Model accuracy')
-        plt.ylabel('Accuracy')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Validation'], loc='upper left')
-        plt.show()
+        pyplot.plot(history.history['categorical_accuracy'])
+        pyplot.plot(history.history['val_categorical_accuracy'])
+        pyplot.title('Model accuracy')
+        pyplot.ylabel('Accuracy')
+        pyplot.xlabel('Epoch')
+        pyplot.legend(['Train', 'Validation'], loc='upper left')
+        pyplot.show()
     else:
         # load the model
         model = load_model(model_files)
@@ -121,11 +136,12 @@ def main():
     prediction_correct = [(prediction == correct_answer) for prediction, correct_answer in zip(predictions, correct_answers)]
     accuracy = np.mean(prediction_correct)
 
-    # save a sample of incorrect classifications #TODO: do save bool check
-    save_wrong_classification_sample(test_data, prediction_correct, 10)
-
     print_log("Accuracy on the test data is: {accuracy}".format(accuracy=accuracy))
 
+    # save a sample of incorrect classifications
+    if(save_wrong_classifications):
+        save_wrong_classification_sample(test_data, predictions, correct_answers)
+        print_log('Saved {image_number} wrongly classified images to "{folder}".'.format(image_number=wrong_classification_sample_size,folder=wrong_classifications_path))
 
     print_log("All done!")
 
@@ -141,7 +157,7 @@ def load_data(file):
     labels_file = file + "_labels"
 
     # if both data and labels files exist as .dat, load from there
-    if (path.exists(data_file + ".dat") and path.exists(labels_file + ".dat")):
+    if (os.path.exists(data_file + ".dat") and os.path.exists(labels_file + ".dat")):
         # load from .dat
         data = load_data_from_dat(data_file, np.float64)
         labels = load_data_from_dat(labels_file, np.int32)
@@ -267,37 +283,50 @@ def load_model(model_path):
 
     return model
 
-def save_wrong_classification_sample(images, prediction_correct, sample_size):
+def save_wrong_classification_sample(images, predictions, correct_answers):
     '''
         Saves a sample of wrongly classified images as labeled image files.
 
         Parameters:
         images: Numpy array of images. The data that prediction was ran on.
-        prediction_correct: An array of True/False values indicating the success of the prediction. Must be the same length as test_data.
-        sample_size: Number of images (samples) to save. Default: 10.
+        predictions: Numpy array of predictions (array of integer values for classes).
+        correct_answeres: Numpy array of actual correct classifications.
     '''
     data_length = images.shape[0]
     already_selected = []
 
-    for sample_index in range(sample_size):
+    # clear the folder of previous images and recreate it
+    if (os.path.exists(wrong_classifications_path)):
+        shutil.rmtree(wrong_classifications_path)
+
+    os.mkdir(wrong_classifications_path)
+
+    for i in range(wrong_classification_sample_size):
         random_index = randrange(data_length)
 
-        # skip already saved samples
-        if (random_index in already_selected):
-            continue
-        
-        # skip correct predictions
-        if (prediction_correct[random_index] == True):
-            continue
+        # skip already saved samples and skip correct predictions
+        while (random_index in already_selected or predictions[random_index] == correct_answers[random_index]):            
+            random_index = randrange(data_length)
 
         already_selected.append(random_index)
 
         # save the image
-        image_data_np = images[random_index]
-        # TODO
+        image = images[random_index]
+        image = image.reshape(48, 48)
+        # 1 - Predicted=Happy, Actual=Neutral
+        image_name = str(i+1) + " - Predicted=" + emotions_mapping[predictions[random_index]] + ", Actual=" + emotions_mapping[correct_answers[random_index]]
+        image_path = wrong_classifications_path + "/" + image_name + '.png'
+        pyplot.imsave(image_path, image, cmap='gray')
 
-
-        x = 123
+def save_images(images):
+    '''
+        Save provided Nympy array of images as .png.
+    '''
+    for i in tqdm(range(images.shape[0])):
+        image = images[i]
+        image = image.reshape(48,48)
+        image_path = 'data/images/test data/' + str(i) + '.png'
+        pyplot.imsave(image_path, image, cmap='gray')
 
 
 

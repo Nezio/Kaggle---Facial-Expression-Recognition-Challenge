@@ -1,3 +1,4 @@
 *.dat
 test.csv
 train.csv
+data/images/
