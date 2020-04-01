@@ -6,7 +6,7 @@ from random import randrange
 import tensorflow as tf
 import numpy as np
 from keras.models import model_from_json
-from keras.metrics import categorical_accuracy
+from keras import metrics
 from keras.utils import plot_model
 from matplotlib import pyplot
 
@@ -22,13 +22,14 @@ train_data_file = "data/train"
 test_data_file = "data/test"
 
 # Number of data samples to use for training (and validation). Set to 0 to use all the data.
-train_subset_length = 500
+train_subset_length = 4000
 
 # Number of data samples to use for testing. Set to 0 to use all the data.
-test_subset_length = 500
+test_subset_length = 0
 
-batch_size = 256
+batch_size = 64
 epochs = 4
+validation_percentage = 0.2
 
 # Model files to load (without extension). Model file (.json) and weights file (.h5) will be loaded.
 # This will be ignored if left empty or "retrain" is set to "True".
@@ -36,10 +37,10 @@ model_files = "saved_models/model_test"
 
 # If "retrain" is "True", training will be done regardless of whether the the weights file is provided or not.
 # Training will always generate a weights file and save it to saved_models/model.json and saved_models/model.h5
-retrain = False
+retrain = True
 
 # Whether to save wrongly classified images to folder for reviewing.
-save_wrong_classifications = True
+save_wrong_classifications = False
 
 # Path where to save wrongly classified images if save_wrong_classifications is set to "True"
 wrong_classifications_path = "data/images/wrong classifications"
@@ -82,13 +83,13 @@ def main():
         # train the model
         model = models.baseline()
 
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=[metrics.categorical_accuracy])
 
         history = model.fit(train_data, train_labels,
             batch_size=batch_size,
             epochs=epochs,
             verbose=1,
-            validation_split=0.1111)
+            validation_split=validation_percentage)
 
         # save the model
         save_model(model)
