@@ -22,13 +22,13 @@ train_data_file = "data/train"
 test_data_file = "data/test"
 
 # Number of data samples to use for training (and validation). Set to 0 to use all the data.
-train_subset_length = 4000
+train_subset_length = 500
 
 # Number of data samples to use for testing. Set to 0 to use all the data.
-test_subset_length = 0
+test_subset_length = 100
 
-batch_size = 64
-epochs = 4
+batch_size = 128
+epochs = 2
 validation_percentage = 0.2
 
 # Model files to load (without extension). Model file (.json) and weights file (.h5) will be loaded.
@@ -42,11 +42,11 @@ retrain = True
 # Whether to save wrongly classified images to folder for reviewing.
 save_wrong_classifications = False
 
-# Path where to save wrongly classified images if save_wrong_classifications is set to "True"
-wrong_classifications_path = "data/images/wrong classifications"
-
 # Number of images to save from wrong classifications.
-wrong_classification_sample_size = 100
+wrong_classification_sample_size = 10
+
+# Folder to which output will be saved (Model, weights, plots, wrong classification sample images, configuration...)
+output_root_path = "output"
 
 ################## CONFIG SECTION END ##################################################################
 
@@ -54,12 +54,19 @@ emotions_mapping = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neu
 
 def main():
 
+    output_folder_nickname = "test001"
+
+    # generate output folder
+    folder_name = datetime.datetime.now().strftime("%Y.%m.%d %H.%M")
+    output_path = output_root_path + "/" + folder_name
+    if (output_folder_nickname != ""):
+        output_path += " - " + output_folder_nickname
+    os.mkdir(output_path)
+
     # load train data
-    # if loaded from .csv: 32298 it [02:37, 205.64it/s]
     train_data, train_labels = load_data(train_data_file)
     
     # load test data
-    # if loaded from .csv: 3589 it [00:17, 205.12it/s]
     test_data, test_labels = load_data(test_data_file)
     
     # one-hot encode labels
@@ -78,7 +85,7 @@ def main():
     # save test data images
     #save_images(test_data)
 
-    # get model by training or loading wights
+    # get model by training or loading from disk
     if (retrain or model_files == ""):
         # train the model
         model = models.baseline()
@@ -92,25 +99,10 @@ def main():
             validation_split=validation_percentage)
 
         # save the model
-        save_model(model)
+        save_model(model, output_path + "/model")
 
-        # Plot training & validation loss values
-        pyplot.plot(history.history['loss'])
-        pyplot.plot(history.history['val_loss'])
-        pyplot.title('Model loss')
-        pyplot.ylabel('Loss')
-        pyplot.xlabel('Epoch')
-        pyplot.legend(['Train', 'Validation'], loc='upper left')
-        pyplot.show()
-
-        # Plot training & validation accuracy values
-        pyplot.plot(history.history['categorical_accuracy'])
-        pyplot.plot(history.history['val_categorical_accuracy'])
-        pyplot.title('Model accuracy')
-        pyplot.ylabel('Accuracy')
-        pyplot.xlabel('Epoch')
-        pyplot.legend(['Train', 'Validation'], loc='upper left')
-        pyplot.show()
+        # save the plots
+        save_plots(history, output_path)
     else:
         # load the model
         model = load_model(model_files)
@@ -141,7 +133,7 @@ def main():
 
     # save a sample of incorrect classifications
     if(save_wrong_classifications):
-        save_wrong_classification_sample(test_data, predictions, correct_answers)
+        save_wrong_classification_sample(test_data, predictions, correct_answers, output_path)
         print_log('Saved {image_number} wrongly classified images to "{folder}".'.format(image_number=wrong_classification_sample_size,folder=wrong_classifications_path))
 
     print_log("All done!")
@@ -260,15 +252,16 @@ def one_hot_encode(input_array):
 
     return one_hot_array
 
-def save_model(model):
+def save_model(model, file):
     # save json
     model_json = model.to_json()
-    with open("saved_models/model.json", "w") as json_file:
+    with open(file + ".json", "w") as json_file:
         json_file.write(model_json)
 
     # save the weights
-    model.save_weights("saved_models/model.h5")
-    print_log("Model saved to disk.")
+    model.save_weights(file + ".h5")
+
+    print_log("Model and weights saved to the output folder.")
 
 def load_model(model_path):
     # read model from json
@@ -284,7 +277,7 @@ def load_model(model_path):
 
     return model
 
-def save_wrong_classification_sample(images, predictions, correct_answers):
+def save_wrong_classification_sample(images, predictions, correct_answers, path):
     '''
         Saves a sample of wrongly classified images as labeled image files.
 
@@ -296,11 +289,8 @@ def save_wrong_classification_sample(images, predictions, correct_answers):
     data_length = images.shape[0]
     already_selected = []
 
-    # clear the folder of previous images and recreate it
-    if (os.path.exists(wrong_classifications_path)):
-        shutil.rmtree(wrong_classifications_path)
-
-    os.mkdir(wrong_classifications_path)
+    output_path = path + "/wrong classifications"
+    os.mkdir(output_path)
 
     for i in range(wrong_classification_sample_size):
         random_index = randrange(data_length)
@@ -316,7 +306,7 @@ def save_wrong_classification_sample(images, predictions, correct_answers):
         image = image.reshape(48, 48)
         # 1 - Predicted=Happy, Actual=Neutral
         image_name = str(i+1) + " - Predicted=" + emotions_mapping[predictions[random_index]] + ", Actual=" + emotions_mapping[correct_answers[random_index]]
-        image_path = wrong_classifications_path + "/" + image_name + '.png'
+        image_path = output_path + "/" + image_name + '.png'
         pyplot.imsave(image_path, image, cmap='gray')
 
 def save_images(images):
@@ -328,6 +318,32 @@ def save_images(images):
         image = image.reshape(48,48)
         image_path = 'data/images/test data/' + str(i) + '.png'
         pyplot.imsave(image_path, image, cmap='gray')
+
+def save_plots(history, path):
+    # Plot training & validation loss values
+    pyplot.plot(history.history['loss'])
+    pyplot.plot(history.history['val_loss'])
+    pyplot.title('Model loss')
+    pyplot.ylabel('Loss')
+    pyplot.xlabel('Epoch')
+    pyplot.legend(['Train', 'Validation'], loc='upper left')
+    #pyplot.show()
+    output_file = path + "/Loss.png"
+    pyplot.savefig(output_file)
+
+    # clear the plot
+    pyplot.clf()
+
+    # Plot training & validation accuracy values
+    pyplot.plot(history.history['categorical_accuracy'])
+    pyplot.plot(history.history['val_categorical_accuracy'])
+    pyplot.title('Model accuracy')
+    pyplot.ylabel('Accuracy')
+    pyplot.xlabel('Epoch')
+    pyplot.legend(['Train', 'Validation'], loc='upper left')
+    #pyplot.show()
+    output_file = path + "/Accuracy.png"
+    pyplot.savefig(output_file)
 
 
 
