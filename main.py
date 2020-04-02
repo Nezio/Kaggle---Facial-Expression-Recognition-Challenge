@@ -1,121 +1,85 @@
+import os
 import datetime
 import shutil
-import os
 from random import randrange
 
 import tensorflow as tf
-import numpy as np
 from keras.models import model_from_json
 from keras import metrics
 from keras.utils import plot_model
+import numpy as np
 from matplotlib import pyplot
 
-import models
 from tqdm import tqdm
 
-################## CONFIG SECTION START ################################################################
-
-# Filename for train and test data (without extension). If .dat file is present it will be used, 
-# if not .csv file will be used and .dat file will be generated to be used in the next run. 
-# This is to improve the load speeds as .dat file loads much faster with numpy array.
-train_data_file = "data/train"
-test_data_file = "data/test"
-
-# Number of data samples to use for training (and validation). Set to 0 to use all the data.
-train_subset_length = 500
-
-# Number of data samples to use for testing. Set to 0 to use all the data.
-test_subset_length = 100
-
-batch_size = 128
-epochs = 2
-validation_percentage = 0.2
-
-# Model files to load (without extension). Model file (.json) and weights file (.h5) will be loaded.
-# This will be ignored if left empty or "retrain" is set to "True".
-model_files = "saved_models/model_test"
-
-# If "retrain" is "True", training will be done regardless of whether the the weights file is provided or not.
-# Training will always generate a weights file and save it to saved_models/model.json and saved_models/model.h5
-retrain = True
-
-# Whether to save wrongly classified images to folder for reviewing.
-save_wrong_classifications = False
-
-# Number of images to save from wrong classifications.
-wrong_classification_sample_size = 10
-
-# Folder to which output will be saved (Model, weights, plots, wrong classification sample images, configuration...)
-output_root_path = "output"
-
-################## CONFIG SECTION END ##################################################################
+import models
 
 emotions_mapping = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"]
 
-def main():
-
-    output_folder_nickname = "test001"
-
+def run(config):
     # generate output folder
     folder_name = datetime.datetime.now().strftime("%Y.%m.%d %H.%M")
-    output_path = output_root_path + "/" + folder_name
-    if (output_folder_nickname != ""):
-        output_path += " - " + output_folder_nickname
+    output_path = config.output_root_path + "/" + folder_name
+    if (config.output_folder_nickname != ""):
+        output_path += " - " + config.output_folder_nickname
     os.mkdir(output_path)
 
     # load train data
-    train_data, train_labels = load_data(train_data_file)
+    train_data, train_labels = load_data(config.train_data_file)
     
     # load test data
-    test_data, test_labels = load_data(test_data_file)
+    test_data, test_labels = load_data(config.test_data_file)
     
     # one-hot encode labels
     train_labels = one_hot_encode(train_labels)
     test_labels = one_hot_encode(test_labels)
 
     # subset train data
-    if (train_subset_length > 0):
-        train_data = train_data[0:train_subset_length]
-        train_labels = train_labels[0:train_subset_length]
+    if (config.train_subset_length > 0):
+        train_data = train_data[0:config.train_subset_length]
+        train_labels = train_labels[0:config.train_subset_length]
 
     # reshape to fit Conv2D layer
     train_data = train_data.reshape(-1, 48, 48, 1)
     test_data = test_data.reshape(-1, 48, 48, 1)
 
     # save test data images
-    #save_images(test_data)
+    #save_images(test_data, "data/images/test data")
 
     # get model by training or loading from disk
-    if (retrain or model_files == ""):
+    if (config.retrain or config.model_files == ""):
         # train the model
-        model = models.baseline()
+        model = getattr(models, config.model)()
+        #model = models.baseline()
 
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=[metrics.categorical_accuracy])
 
         history = model.fit(train_data, train_labels,
-            batch_size=batch_size,
-            epochs=epochs,
+            batch_size=config.batch_size,
+            epochs=config.epochs,
             verbose=1,
-            validation_split=validation_percentage)
+            validation_split=config.validation_percentage)
 
         # save the model
-        save_model(model, output_path + "/model")
+        save_model(model, output_path)
 
         # save the plots
         save_plots(history, output_path)
     else:
         # load the model
-        model = load_model(model_files)
+        model = load_model(config.model_files)
 
         # compile if needed
         #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
-    # create nmodel vizualization image
-    #plot_model(model, to_file='model.png')
+    # create model vizualization chart
+    if (config.create_model_vizualization):
+        path = output_path + "/model.png"
+        plot_model(model, to_file=path)
 
     # subset test data
-    if (test_subset_length > 0):
-        test_data = test_data[0:test_subset_length]
+    if (config.test_subset_length > 0):
+        test_data = test_data[0:config.test_subset_length]
 
     # predict outputs on test data
     print_log("Predicting answers on the test data...")
@@ -132,9 +96,11 @@ def main():
     print_log("Accuracy on the test data is: {accuracy}".format(accuracy=accuracy))
 
     # save a sample of incorrect classifications
-    if(save_wrong_classifications):
-        save_wrong_classification_sample(test_data, predictions, correct_answers, output_path)
-        print_log('Saved {image_number} wrongly classified images to "{folder}".'.format(image_number=wrong_classification_sample_size,folder=wrong_classifications_path))
+    if(config.save_wrong_classifications):
+        save_wrong_classification_sample(test_data, config.wrong_classification_sample_size, output_path, predictions, correct_answers)
+        #print_log('Saved {image_number} wrongly classified images to "{folder}".'.format(image_number=wrong_classification_sample_size,folder=wrong_classifications_path))
+
+    # TODO: generate results file
 
     print_log("All done!")
 
@@ -252,47 +218,50 @@ def one_hot_encode(input_array):
 
     return one_hot_array
 
-def save_model(model, file):
+def save_model(model, path):
     # save json
     model_json = model.to_json()
-    with open(file + ".json", "w") as json_file:
+    with open(path + "/model.json", "w") as json_file:
         json_file.write(model_json)
 
     # save the weights
-    model.save_weights(file + ".h5")
+    model.save_weights(path + "/weights.h5")
 
     print_log("Model and weights saved to the output folder.")
 
 def load_model(model_path):
     # read model from json
-    model_json_file = open(model_path + ".json", 'r')
+    model_json_file = open(model_path + "/model.json", 'r')
     model_json = model_json_file.read()
     model_json_file.close()
     model = model_from_json(model_json)
 
     # load weights
-    model.load_weights(model_path + ".h5")
+    model.load_weights(model_path + "/weights.h5")
 
     print_log('Model loaded from "{model_path}"'.format(model_path=model_path))
 
     return model
 
-def save_wrong_classification_sample(images, predictions, correct_answers, path):
+def save_wrong_classification_sample(images, count, root_path, predictions, correct_answers):
     '''
         Saves a sample of wrongly classified images as labeled image files.
 
         Parameters:
         images: Numpy array of images. The data that prediction was ran on.
+        count: Number of images to save.
+        root_path: Folder in which to create output folder with images.
         predictions: Numpy array of predictions (array of integer values for classes).
         correct_answeres: Numpy array of actual correct classifications.
     '''
     data_length = images.shape[0]
+
+    path = root_path + "/wrong classifications"
+    os.mkdir(path)
+
     already_selected = []
 
-    output_path = path + "/wrong classifications"
-    os.mkdir(output_path)
-
-    for i in range(wrong_classification_sample_size):
+    for i in range(count):
         random_index = randrange(data_length)
 
         # skip already saved samples and skip correct predictions
@@ -306,17 +275,17 @@ def save_wrong_classification_sample(images, predictions, correct_answers, path)
         image = image.reshape(48, 48)
         # 1 - Predicted=Happy, Actual=Neutral
         image_name = str(i+1) + " - Predicted=" + emotions_mapping[predictions[random_index]] + ", Actual=" + emotions_mapping[correct_answers[random_index]]
-        image_path = output_path + "/" + image_name + '.png'
+        image_path = path + "/" + image_name + '.png'
         pyplot.imsave(image_path, image, cmap='gray')
 
-def save_images(images):
+def save_images(images, path):
     '''
-        Save provided Nympy array of images as .png.
+        Save provided Nympy array of images as .png to the path provided.
     '''
     for i in tqdm(range(images.shape[0])):
         image = images[i]
         image = image.reshape(48,48)
-        image_path = 'data/images/test data/' + str(i) + '.png'
+        image_path = path + "/" + str(i) + '.png'
         pyplot.imsave(image_path, image, cmap='gray')
 
 def save_plots(history, path):
@@ -344,10 +313,3 @@ def save_plots(history, path):
     #pyplot.show()
     output_file = path + "/Accuracy.png"
     pyplot.savefig(output_file)
-
-
-
-
-
-if __name__ == "__main__":
-    main()
