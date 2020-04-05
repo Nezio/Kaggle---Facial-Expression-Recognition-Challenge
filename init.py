@@ -1,5 +1,6 @@
 import main
 
+# configs
 import configs.default as config_default
 
 def init():

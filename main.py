@@ -1,4 +1,6 @@
 import os
+import time
+import math
 import datetime
 import shutil
 from random import randrange
@@ -17,12 +19,8 @@ import models
 emotions_mapping = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"]
 
 def run(config):
-    # generate output folder
-    folder_name = datetime.datetime.now().strftime("%Y.%m.%d %H.%M")
-    output_path = config.output_root_path + "/" + folder_name
-    if (config.output_folder_nickname != ""):
-        output_path += " - " + config.output_folder_nickname
-    os.mkdir(output_path)
+    # generate output folder and it's full path
+    output_path, output_folder = generate_output_folder(config.output_root_path, config.output_folder_nickname)
 
     # load train data
     train_data, train_labels = load_data(config.train_data_file)
@@ -46,19 +44,30 @@ def run(config):
     # save test data images
     #save_images(test_data, "data/images/test data")
 
-    # get model by training or loading from disk
-    if (config.retrain or config.model_files == ""):
-        # train the model
-        model = getattr(models, config.model)()
-        #model = models.baseline()
+    # initialize training time
+    training_time = 0
 
+    # get model by training or loading from disk
+    if (config.retrain or config.model_path == ""):
+        print_log('Starting the training on the "{model}" model.'.format(model=config.model))
+
+        # get and compile the model
+        model = getattr(models, config.model)()
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=[metrics.categorical_accuracy])
 
+        # measure training time
+        start = time.time()
+
+        # train the model
         history = model.fit(train_data, train_labels,
             batch_size=config.batch_size,
             epochs=config.epochs,
             verbose=1,
             validation_split=config.validation_percentage)
+
+        # measure training time
+        end = time.time()
+        training_time = "{0:.2f}".format(end - start)
 
         # save the model
         save_model(model, output_path)
@@ -67,15 +76,14 @@ def run(config):
         save_plots(history, output_path)
     else:
         # load the model
-        model = load_model(config.model_files)
+        model = load_model(config.model_path)
 
         # compile if needed
         #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[categorical_accuracy])
 
-    # create model vizualization chart
-    if (config.create_model_vizualization):
-        path = output_path + "/model.png"
-        plot_model(model, to_file=path)
+    # create model visualization chart
+    if (config.create_model_visualization):
+        create_model_visualization(model, output_path)
 
     # subset test data
     if (config.test_subset_length > 0):
@@ -100,7 +108,9 @@ def run(config):
         save_wrong_classification_sample(test_data, config.wrong_classification_sample_size, output_path, predictions, correct_answers)
         #print_log('Saved {image_number} wrongly classified images to "{folder}".'.format(image_number=wrong_classification_sample_size,folder=wrong_classifications_path))
 
-    # TODO: generate results file
+    # generate report (only if training was done)
+    if (config.retrain or config.model_path == ""):
+        generate_report(output_path, output_folder, config, history, accuracy, train_data, test_data, training_time)
 
     print_log("All done!")
 
@@ -278,6 +288,8 @@ def save_wrong_classification_sample(images, count, root_path, predictions, corr
         image_path = path + "/" + image_name + '.png'
         pyplot.imsave(image_path, image, cmap='gray')
 
+    print_log('{count} wrong classifications saved to the output folder.'.format(count=count))
+
 def save_images(images, path):
     '''
         Save provided Nympy array of images as .png to the path provided.
@@ -287,6 +299,8 @@ def save_images(images, path):
         image = image.reshape(48,48)
         image_path = path + "/" + str(i) + '.png'
         pyplot.imsave(image_path, image, cmap='gray')
+
+    print_log('All images saved to "{path}"'.format(path=path))
 
 def save_plots(history, path):
     # Plot training & validation loss values
@@ -313,3 +327,65 @@ def save_plots(history, path):
     #pyplot.show()
     output_file = path + "/Accuracy.png"
     pyplot.savefig(output_file)
+
+    print_log('Plots saved to the output folder.')
+
+def create_model_visualization(model, path):
+    output_file = path + "/model.png"
+    plot_model(model, to_file=output_file)
+    print_log('Model visualization saved to the output folder.')
+
+def generate_output_folder(output_root_path, output_folder_nickname):
+    folder_name = datetime.datetime.now().strftime("%Y.%m.%d %H.%M")
+    if (output_folder_nickname != ""):
+        folder_name += " - " + output_folder_nickname
+
+    output_path = output_root_path + "/" + folder_name
+
+    os.mkdir(output_path)
+
+    print_log("Output folder '{folder}' created.".format(folder=output_path))
+
+    return output_path, folder_name
+
+def generate_report(path, output_folder, config, history, test_accuracy, train_data, test_data, training_time):
+    output_file = path + "/report.log"
+
+    with open(output_file, "w") as file:
+        file.write("====================== Report for {id} ======================\n\n".format(id=output_folder))
+        file.write("Parameters:\n")
+
+        file.write("    Train data samples: ")
+        if (config.train_subset_length == 0):
+            file.write("all available data ({samples} samples)\n".format(samples=train_data.shape[0]))
+        else:
+            file.write("{length} samples\n".format(length=config.train_subset_length))
+
+        validation_samples = train_data.shape[0] - history.params["samples"]
+        validation_percentage = config.validation_percentage * 100
+        train_samples = train_data.shape[0] - validation_samples
+        train_percentage = 100 - validation_percentage
+        file.write("        Train set size: {percentage}% ({samples} samples)\n".format(percentage=train_percentage, samples=train_samples))
+        file.write("        Validation set size: {percentage}% ({samples} samples)\n".format(percentage=validation_percentage, samples=validation_samples))
+
+        file.write("    Test data samples: ")
+        if (config.test_subset_length == 0):
+            file.write("all available data ({samples} samples)\n".format(samples=test_data.shape[0]))
+        else:
+            file.write("{length} samples\n".format(length=config.test_subset_length))
+            
+        file.write("    Model: {model}\n".format(model=config.model))
+        file.write("    Batch size: {size}\n".format(size=config.batch_size))
+        file.write("    Epochs: {epochs}\n\n".format(epochs=config.epochs))
+
+        file.write("Results:\n")
+        for i in range(len(history.history["loss"])):
+            file.write("    Epoch {epoch}: ".format(epoch=i))
+            file.write("Loss: {loss}, ".format(loss=str(round(history.history["loss"][i], 4))))
+            file.write("Accuracy: {accuracy}, ".format(accuracy=str(round(history.history["categorical_accuracy"][i], 4))))
+            file.write("Validation loss: {loss}, ".format(loss=str(round(history.history["val_loss"][i], 4))))
+            file.write("Validation accuracy: {accuracy}\n".format(accuracy=str(round(history.history["val_categorical_accuracy"][i], 4))))
+
+        file.write("\nTraining completed in: {time}s\n".format(time=training_time))
+        file.write("Test accuracy: {accuracy}\n".format(accuracy=test_accuracy))
+
