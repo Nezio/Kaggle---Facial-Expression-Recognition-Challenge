@@ -9,22 +9,22 @@ test_data_file = "data/test"
 output_root_path = "output"
 
 # Add a nickname to the genereated output folder. Folder will be named "<datetime> - nickname".
-output_folder_nickname = "10k"
+output_folder_nickname = "beta"
 
 
 # Number of data samples to use for training (and validation). Set to 0 to use all the data.
-train_subset_length = 10000
+train_subset_length = 500
 
 # Number of data samples to use for testing. Set to 0 to use all the data.
-test_subset_length = 0
+test_subset_length = 100
 
 
 # A string representing which model design to use. Select one from models.py.
 model = "baseline"
 
 batch_size = 128
-epochs = 4
-validation_percentage = 0.15
+epochs = 2
+validation_percentage = 0.1101
 
 
 # Model files to load (without extension). Model file (model.json) and weights file (weights.h5) will be loaded from the provided folder.

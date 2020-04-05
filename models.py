@@ -100,19 +100,18 @@ def baseline_external_short():
 
     return model
 
-def baseline():    
-    # Initialising the CNN
+def baseline():
     model = Sequential()
 
-    # 1st Convolution
-    model.add(Conv2D(64,(3,3), padding='same', input_shape=(48, 48,1)))
+    # Convolution layer - 1
+    model.add(Conv2D(64, (3,3), padding='same', input_shape=(48, 48,1)))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    # 2nd Convolution layer
-    model.add(Conv2D(128,(5,5), padding='same'))
+    # Convolution layer - 2
+    model.add(Conv2D(128, (5,5), padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -121,7 +120,7 @@ def baseline():
     # Flattening
     model.add(Flatten())
 
-    # Fully connected layer 1
+    # Fully connected layer
     model.add(Dense(256))
     model.add(BatchNormalization())
     model.add(Activation('relu'))

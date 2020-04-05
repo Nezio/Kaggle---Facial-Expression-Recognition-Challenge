@@ -49,7 +49,7 @@ def run(config):
 
     # get model by training or loading from disk
     if (config.retrain or config.model_path == ""):
-        print_log('Starting the training on the "{model}" model.'.format(model=config.model))
+        print_log("Starting the training on the '{model}' model for '{folder}'.".format(model=config.model,folder=output_folder))
 
         # get and compile the model
         model = getattr(models, config.model)()
@@ -112,7 +112,7 @@ def run(config):
     if (config.retrain or config.model_path == ""):
         generate_report(output_path, output_folder, config, history, accuracy, train_data, test_data, training_time)
 
-    print_log("All done!")
+    print_log("All done for '{folder}'!".format(folder=output_folder))
 
 
 
@@ -349,7 +349,7 @@ def generate_output_folder(output_root_path, output_folder_nickname):
     return output_path, folder_name
 
 def generate_report(path, output_folder, config, history, test_accuracy, train_data, test_data, training_time):
-    output_file = path + "/report.log"
+    output_file = path + "/report [" + output_folder + "].log"
 
     with open(output_file, "w") as file:
         file.write("====================== Report for {id} ======================\n\n".format(id=output_folder))
