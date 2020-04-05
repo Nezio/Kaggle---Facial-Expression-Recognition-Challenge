@@ -67,7 +67,8 @@ def run(config):
 
         # measure training time
         end = time.time()
-        training_time = "{0:.2f}".format(end - start)
+        training_time = int(end - start)
+        training_time = str(datetime.timedelta(seconds=training_time))
 
         # save the model
         save_model(model, output_path)
@@ -386,6 +387,6 @@ def generate_report(path, output_folder, config, history, test_accuracy, train_d
             file.write("Validation loss: {loss}, ".format(loss=str(round(history.history["val_loss"][i], 4))))
             file.write("Validation accuracy: {accuracy}\n".format(accuracy=str(round(history.history["val_categorical_accuracy"][i], 4))))
 
-        file.write("\nTraining completed in: {time}s\n".format(time=training_time))
-        file.write("Test accuracy: {accuracy}\n".format(accuracy=test_accuracy))
+        file.write("\nTraining completed in: {time}\n".format(time=training_time))
+        file.write("Test accuracy: {accuracy}\n".format(accuracy=str(round(test_accuracy))))
 
