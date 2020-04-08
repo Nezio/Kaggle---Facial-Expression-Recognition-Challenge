@@ -9,6 +9,7 @@ import tensorflow as tf
 from keras.models import model_from_json
 from keras import metrics
 from keras.utils import plot_model
+from keras.optimizers import adam
 import numpy as np
 from matplotlib import pyplot
 
@@ -31,6 +32,11 @@ def run(config):
     # one-hot encode labels
     train_labels = one_hot_encode(train_labels)
     test_labels = one_hot_encode(test_labels)
+    
+    # shuffle data
+    shuffler = np.random.permutation(len(train_data))
+    train_data = train_data[shuffler]
+    train_labels = train_labels[shuffler]
 
     # subset train data
     if (config.train_subset_length > 0):
@@ -53,7 +59,7 @@ def run(config):
 
         # get and compile the model
         model = getattr(models, config.model)()
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=[metrics.categorical_accuracy])
+        model.compile(optimizer=adam(lr=config.learning_rate), loss='categorical_crossentropy', metrics=[metrics.categorical_accuracy])
 
         # measure training time
         start = time.time()
@@ -377,16 +383,17 @@ def generate_report(path, output_folder, config, history, test_accuracy, train_d
             
         file.write("    Model: {model}\n".format(model=config.model))
         file.write("    Batch size: {size}\n".format(size=config.batch_size))
-        file.write("    Epochs: {epochs}\n\n".format(epochs=config.epochs))
+        file.write("    Epochs: {epochs}\n".format(epochs=config.epochs))
+        file.write("    Learning rate: {lr}\n\n".format(lr=config.learning_rate))
 
         file.write("Results:\n")
         for i in range(len(history.history["loss"])):
-            file.write("    Epoch {epoch}: ".format(epoch=i))
+            file.write("    Epoch {epoch}: ".format(epoch=i+1))
             file.write("Loss: {loss}, ".format(loss=str(round(history.history["loss"][i], 4))))
             file.write("Accuracy: {accuracy}, ".format(accuracy=str(round(history.history["categorical_accuracy"][i], 4))))
             file.write("Validation loss: {loss}, ".format(loss=str(round(history.history["val_loss"][i], 4))))
             file.write("Validation accuracy: {accuracy}\n".format(accuracy=str(round(history.history["val_categorical_accuracy"][i], 4))))
 
         file.write("\nTraining completed in: {time}\n".format(time=training_time))
-        file.write("Test accuracy: {accuracy}\n".format(accuracy=str(round(test_accuracy))))
+        file.write("Test accuracy: {accuracy}\n".format(accuracy=str(round(test_accuracy, 2))))
 
