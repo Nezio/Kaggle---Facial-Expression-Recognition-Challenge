@@ -20,12 +20,17 @@ test_subset_length = 500
 
 
 # A string representing which model design to use. Select one from models.py.
-model = "test_long"
+model = "baseline"
 
 batch_size = 128
-epochs = 3
+epochs = 10
 validation_percentage = 0.15
 learning_rate = 0.001
+
+# early stopping
+use_early_stopping = True
+early_stopping_min_delta = 0
+early_stopping_patience = 4
 
 # Model files to load (without extension). Model file (model.json) and weights file (weights.h5) will be loaded from the provided folder.
 # This will be ignored if left empty or "retrain" is set to "True".

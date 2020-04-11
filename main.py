@@ -10,6 +10,7 @@ from keras.models import model_from_json
 from keras import metrics
 from keras.utils import plot_model
 from keras.optimizers import adam
+from keras import callbacks
 import numpy as np
 from matplotlib import pyplot
 
@@ -65,11 +66,26 @@ def run(config):
         start = time.time()
 
         # train the model
-        history = model.fit(train_data, train_labels,
-            batch_size=config.batch_size,
-            epochs=config.epochs,
-            verbose=1,
-            validation_split=config.validation_percentage)
+        if (config.use_early_stopping):
+            print_log("Using early stopping with min_delta: {min_delta} and patience: {patience}.".format(min_delta=config.early_stopping_min_delta,patience=config.early_stopping_patience))
+
+            # early stopping
+            early_stopping = callbacks.EarlyStopping(monitor='val_loss', min_delta=config.early_stopping_min_delta, patience=config.early_stopping_patience, verbose=1, mode='auto')
+            
+            history = model.fit(train_data, train_labels,
+                batch_size=config.batch_size,
+                epochs=config.epochs,
+                verbose=1,
+                validation_split=config.validation_percentage,
+                callbacks=[early_stopping])
+        else:
+            # no early stopping
+            history = model.fit(train_data, train_labels,
+                batch_size=config.batch_size,
+                epochs=config.epochs,
+                verbose=1,
+                validation_split=config.validation_percentage,
+                callbacks=[early_stopping])
 
         # measure training time
         end = time.time()
@@ -384,7 +400,11 @@ def generate_report(path, output_folder, config, history, test_accuracy, train_d
         file.write("    Model: {model}\n".format(model=config.model))
         file.write("    Batch size: {size}\n".format(size=config.batch_size))
         file.write("    Epochs: {epochs}\n".format(epochs=config.epochs))
-        file.write("    Learning rate: {lr}\n\n".format(lr=config.learning_rate))
+        file.write("    Learning rate: {lr}\n".format(lr=config.learning_rate))
+        file.write("    Use early stopping: {es}\n".format(es=config.use_early_stopping))
+        if (config.use_early_stopping):
+            file.write("    Early stopping min delta: {es_min_delta}\n".format(es_min_delta=config.early_stopping_min_delta))
+            file.write("    Early stopping patience: {es_patience}\n\n".format(es_patience=config.early_stopping_patience))
 
         file.write("Results:\n")
         for i in range(len(history.history["loss"])):
