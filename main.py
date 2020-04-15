@@ -84,8 +84,7 @@ def run(config):
                 batch_size=config.batch_size,
                 epochs=config.epochs,
                 verbose=1,
-                validation_split=config.validation_percentage,
-                callbacks=[early_stopping])
+                validation_split=config.validation_percentage)
 
         # measure training time
         end = time.time()
@@ -326,6 +325,9 @@ def save_images(images, path):
     print_log('All images saved to "{path}"'.format(path=path))
 
 def save_plots(history, path):
+    # clear the plot
+    pyplot.clf()
+
     # Plot training & validation loss values
     pyplot.plot(history.history['loss'])
     pyplot.plot(history.history['val_loss'])
@@ -415,5 +417,5 @@ def generate_report(path, output_folder, config, history, test_accuracy, train_d
             file.write("Validation accuracy: {accuracy}\n".format(accuracy=str(round(history.history["val_categorical_accuracy"][i], 4))))
 
         file.write("\nTraining completed in: {time}\n".format(time=training_time))
-        file.write("Test accuracy: {accuracy}\n".format(accuracy=str(round(test_accuracy, 2))))
+        file.write("Test accuracy: {accuracy}\n".format(accuracy=str(round(test_accuracy, 4))))
 

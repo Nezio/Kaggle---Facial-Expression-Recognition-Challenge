@@ -9,11 +9,11 @@ test_data_file = "data/test"
 output_root_path = "output"
 
 # Add a nickname to the genereated output folder. Folder will be named "<datetime> - nickname".
-output_folder_nickname = "conv_x"
+output_folder_nickname = "conv_x1_15k"
 
 
 # Number of data samples to use for training (and validation). Set to 0 to use all the data.
-train_subset_length = 5000
+train_subset_length = 15000
 
 # Number of data samples to use for testing. Set to 0 to use all the data.
 test_subset_length = 0
@@ -28,9 +28,9 @@ validation_percentage = 0.15
 learning_rate = 0.001
 
 # early stopping
-use_early_stopping = True
+use_early_stopping = False
 early_stopping_min_delta = 0
-early_stopping_patience = 4
+early_stopping_patience = 3
 
 # Model files to load (without extension). Model file (model.json) and weights file (weights.h5) will be loaded from the provided folder.
 # This will be ignored if left empty or "retrain" is set to "True".

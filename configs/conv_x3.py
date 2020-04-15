@@ -9,23 +9,28 @@ test_data_file = "data/test"
 output_root_path = "output"
 
 # Add a nickname to the genereated output folder. Folder will be named "<datetime> - nickname".
-output_folder_nickname = "beta"
+output_folder_nickname = "conv_x3_double"
 
 
 # Number of data samples to use for training (and validation). Set to 0 to use all the data.
-train_subset_length = 500
+train_subset_length = 12000
 
 # Number of data samples to use for testing. Set to 0 to use all the data.
-test_subset_length = 100
+test_subset_length = 0
 
 
 # A string representing which model design to use. Select one from models.py.
-model = "baseline"
+model = "conv_x3_double"
 
-batch_size = 128
-epochs = 2
-validation_percentage = 0.1101
+batch_size = 64
+epochs = 10
+validation_percentage = 0.15
+learning_rate = 0.001
 
+# early stopping
+use_early_stopping = False
+early_stopping_min_delta = 0
+early_stopping_patience = 3
 
 # Model files to load (without extension). Model file (model.json) and weights file (weights.h5) will be loaded from the provided folder.
 # This will be ignored if left empty or "retrain" is set to "True".
