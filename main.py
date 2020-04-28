@@ -70,7 +70,7 @@ def run(config):
             print_log("Using early stopping with min_delta: {min_delta} and patience: {patience}.".format(min_delta=config.early_stopping_min_delta,patience=config.early_stopping_patience))
 
             # early stopping
-            early_stopping = callbacks.EarlyStopping(monitor='val_loss', min_delta=config.early_stopping_min_delta, patience=config.early_stopping_patience, verbose=1, mode='auto')
+            early_stopping = callbacks.EarlyStopping(monitor='val_loss', min_delta=config.early_stopping_min_delta, patience=config.early_stopping_patience, verbose=1, mode='auto', restore_best_weights=config.early_stopping_restore_best_weights)
             
             history = model.fit(train_data, train_labels,
                 batch_size=config.batch_size,
@@ -406,9 +406,10 @@ def generate_report(path, output_folder, config, history, test_accuracy, train_d
         file.write("    Use early stopping: {es}\n".format(es=config.use_early_stopping))
         if (config.use_early_stopping):
             file.write("    Early stopping min delta: {es_min_delta}\n".format(es_min_delta=config.early_stopping_min_delta))
-            file.write("    Early stopping patience: {es_patience}\n\n".format(es_patience=config.early_stopping_patience))
+            file.write("    Early stopping patience: {es_patience}\n".format(es_patience=config.early_stopping_patience))
+            file.write("    Early stopping restore best weights: {es_restore}\n".format(es_restore=config.early_stopping_restore_best_weights))
 
-        file.write("Results:\n")
+        file.write("\nResults:\n")
         for i in range(len(history.history["loss"])):
             file.write("    Epoch {epoch}: ".format(epoch=i+1))
             file.write("Loss: {loss}, ".format(loss=str(round(history.history["loss"][i], 4))))

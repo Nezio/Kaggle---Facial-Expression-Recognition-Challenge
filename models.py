@@ -616,3 +616,382 @@ def C3_filter128():
     model.add(Dense(number_of_classes, activation='softmax'))
 
     return model
+
+def C3_dense64():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(64))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dense128():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(128))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dense512():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(512))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dense1024():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(1024))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dropout15():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.15))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.15))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.15))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dropout35():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.35))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.35))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.35))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dropout45():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.45))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.45))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.45))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dropout55():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.55))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.55))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.55))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_dropout65():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.65))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.65))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.65))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model
+
+def C3_filter32_double():
+    model = Sequential()
+
+    # Convolution layer - 1
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Conv2D(32, (3,3), padding='same', input_shape=(48,48,1)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Convolution layer - 2
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    
+    # Convolution layer - 3
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Conv2D(128, (3,3), padding='same'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # Flattening
+    model.add(Flatten())
+
+    # Fully connected layer
+    model.add(Dense(256))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+
+    # output layer
+    model.add(Dense(number_of_classes, activation='softmax'))
+
+    return model

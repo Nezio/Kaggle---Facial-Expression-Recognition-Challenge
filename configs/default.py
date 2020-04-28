@@ -31,6 +31,7 @@ learning_rate = 0.001
 use_early_stopping = True
 early_stopping_min_delta = 0
 early_stopping_patience = 4
+early_stopping_restore_best_weights = False
 
 # Model files to load (without extension). Model file (model.json) and weights file (weights.h5) will be loaded from the provided folder.
 # This will be ignored if left empty or "retrain" is set to "True".

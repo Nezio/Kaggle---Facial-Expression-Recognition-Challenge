@@ -1,0 +1,31 @@
+====================== Report for 2020.04.20 13.33 - C3F32_full_double_e20_earlyStop ======================
+
+Parameters:
+    Train data samples: all available data (32298 samples)
+        Train set size: 85.0% (27453 samples)
+        Validation set size: 15.0% (4845 samples)
+    Test data samples: all available data (3589 samples)
+    Model: C3_filter32_double
+    Batch size: 64
+    Epochs: 20
+    Learning rate: 0.001
+    Use early stopping: True
+    Early stopping min delta: 0
+    Early stopping patience: 3
+    Early stopping restore best weights: True
+
+Results:
+    Epoch 1: Loss: 1.5828, Accuracy: 0.39, Validation loss: 1.5838, Validation accuracy: 0.3961
+    Epoch 2: Loss: 1.2985, Accuracy: 0.5042, Validation loss: 1.3832, Validation accuracy: 0.4817
+    Epoch 3: Loss: 1.17, Accuracy: 0.555, Validation loss: 1.1937, Validation accuracy: 0.5467
+    Epoch 4: Loss: 1.0922, Accuracy: 0.588, Validation loss: 1.2489, Validation accuracy: 0.5348
+    Epoch 5: Loss: 1.0205, Accuracy: 0.6142, Validation loss: 1.1426, Validation accuracy: 0.567
+    Epoch 6: Loss: 0.961, Accuracy: 0.6402, Validation loss: 1.1541, Validation accuracy: 0.5761
+    Epoch 7: Loss: 0.9024, Accuracy: 0.6606, Validation loss: 1.1749, Validation accuracy: 0.5765
+    Epoch 8: Loss: 0.8481, Accuracy: 0.6824, Validation loss: 1.0748, Validation accuracy: 0.6095
+    Epoch 9: Loss: 0.7872, Accuracy: 0.7079, Validation loss: 1.0888, Validation accuracy: 0.6008
+    Epoch 10: Loss: 0.7312, Accuracy: 0.7304, Validation loss: 1.1417, Validation accuracy: 0.6056
+    Epoch 11: Loss: 0.6694, Accuracy: 0.7538, Validation loss: 1.1247, Validation accuracy: 0.6064
+
+Training completed in: 1:02:32
+Test accuracy: 0.6272
